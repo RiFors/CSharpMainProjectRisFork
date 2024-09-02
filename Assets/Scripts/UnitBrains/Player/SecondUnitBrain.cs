@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnitBrains.Player
 {
     public class SecondUnitBrain : DefaultPlayerUnitBrain
-    {
+    { 
         public override string TargetUnitName => "Cobra Commando";
         private const float OverheatTemperature = 3f;
         private const float OverheatCooldown = 2f;
@@ -42,12 +42,30 @@ namespace UnitBrains.Player
             ///////////////////////////////////////
             // Homework 1.4 (1st block, 4rd module)
             ///////////////////////////////////////
-            List<Vector2Int> result = GetReachableTargets();
-            while (result.Count > 1)
+            List<Vector2Int> targetEnemies = GetReachableTargets();
+            
+            if (targetEnemies.Count <= 1) 
             {
-                result.RemoveAt(result.Count - 1);
+                if (targetEnemies.Count > 0)
+                return targetEnemies;
             }
-            return result;
+
+            Vector2Int minDistantEnemy = new (int.MaxValue, int.MaxValue);
+
+            foreach (Vector2Int enemy in targetEnemies)
+            {
+                if (DistanceToOwnBase(minDistantEnemy) < DistanceToOwnBase(enemy))
+                {
+                    continue;
+                }
+
+                minDistantEnemy = enemy;
+            }
+
+            targetEnemies.Clear();
+            targetEnemies.Add(minDistantEnemy);
+
+            return targetEnemies;
             ///////////////////////////////////////
         }
 
