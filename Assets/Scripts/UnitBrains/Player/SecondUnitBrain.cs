@@ -1,6 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Model;
 using Model.Runtime.Projectiles;
 using UnityEngine;
+using UnityEngine.UIElements;
+using Utilities;
 
 namespace UnitBrains.Player
 {
@@ -12,7 +16,9 @@ namespace UnitBrains.Player
         private float _temperature = 0f;
         private float _cooldownTime = 0f;
         private bool _overheated;
-        
+
+        private Vector2Int _notRangeEnemyPosition;
+
         protected override void GenerateProjectiles(Vector2Int forTarget, List<BaseProjectile> intoList)
         {
             //float overheatTemperature = OverheatTemperature;
@@ -34,7 +40,7 @@ namespace UnitBrains.Player
 
         public override Vector2Int GetNextStep()
         {
-            return base.GetNextStep();
+            return unit.Pos.CalcNextStepTowards(_notRangeEnemyPosition);
         }
 
         protected override List<Vector2Int> SelectTargets()
@@ -42,15 +48,57 @@ namespace UnitBrains.Player
             ///////////////////////////////////////
             // Homework 1.4 (1st block, 4rd module)
             ///////////////////////////////////////
-            List<Vector2Int> targetEnemies = GetReachableTargets();
-            
-            if (targetEnemies.Count <= 1) 
+            ///
+            Vector2Int importantTargetEnemies = new Vector2Int();
+
+            List<Vector2Int> allTargetEnemies = GetAllTargets().ToList();
+
+            Vector2Int targetBaseEnemy = runtimeModel.RoMap.Bases[RuntimeModel.BotPlayerId];
+
+            //allTargetEnemies.Remove(targetBaseEnemy);
+
+            if (allTargetEnemies.Count > 0)
             {
-                if (targetEnemies.Count > 0)
-                return targetEnemies;
+                if (!HasTargetsInRange())
+                {
+                    _notRangeEnemyPosition = GetDangerousEnemy(allTargetEnemies);
+                }
+                else
+                {
+                    importantTargetEnemies = GetDangerousEnemy(allTargetEnemies);
+                }
+            }
+            else
+            {
+
+                if (!HasTargetsInRange())
+                {
+                    _notRangeEnemyPosition = targetBaseEnemy;
+
+                }
+                else
+                {
+                    importantTargetEnemies = targetBaseEnemy;
+                }
             }
 
-            Vector2Int minDistantEnemy = new (int.MaxValue, int.MaxValue);
+            if (!(importantTargetEnemies == Vector2Int.zero))
+            {
+                allTargetEnemies.Clear();
+                allTargetEnemies.Add(importantTargetEnemies);
+            }
+            else
+            {
+                allTargetEnemies.Clear();
+            }
+
+            return allTargetEnemies;
+            ///////////////////////////////////////
+        }
+
+        private Vector2Int GetDangerousEnemy(List<Vector2Int> targetEnemies)
+        {
+            Vector2Int minDistantEnemy = new(int.MaxValue, int.MaxValue);
 
             foreach (Vector2Int enemy in targetEnemies)
             {
@@ -62,11 +110,7 @@ namespace UnitBrains.Player
                 minDistantEnemy = enemy;
             }
 
-            targetEnemies.Clear();
-            targetEnemies.Add(minDistantEnemy);
-
-            return targetEnemies;
-            ///////////////////////////////////////
+            return minDistantEnemy;
         }
 
         public override void Update(float deltaTime, float time)
