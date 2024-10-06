@@ -49,10 +49,10 @@ namespace UnitBrains.Player
             ///////////////////////////////////////
         }
 
-        public override Vector2Int GetNextStep()
-        {
-            return unit.Pos.CalcNextStepTowards(_notRangeEnemyPosition);
-        }
+        //public override Vector2Int GetNextStep()
+        //{
+        //    return unit.Pos.CalcNextStepTowards(_notRangeEnemyPosition);
+        //}
 
         protected override List<Vector2Int> SelectTargets()
         {
